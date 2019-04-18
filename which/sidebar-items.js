@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ErrorKind",""]],"fn":[["which","Find a exectable binary's path by name."],["which_in","Find `binary_name` in the path list `paths`, using `cwd` to resolve relative paths."]],"struct":[["Error",""]],"type":[["Result",""]]});

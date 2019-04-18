@@ -1,0 +1,1 @@
+initSidebarItems({"type":[["Name","A four-char name embedded in the binary."]]});
