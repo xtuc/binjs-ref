@@ -2,106 +2,91 @@
 
 import fromShift from '../../src/source/from-shift';
 import { parseScript } from 'shift-parser';
-import initWASM, { encodeMultipart } from './pkg';
 
-const initialisedWASM = initWASM(BINJS_WASM);
-
-const VERSION = 'binjs-18';
+const VERSION = 'binjs-19';
 
 function transformLikeToJSON(obj, callback) {
-	return (function transform(obj, k, v) {
-		obj[k] = v = callback.call(obj, k, v);
+    return (function transform(obj, k, v) {
+        obj[k] = v = callback.call(obj, k, v);
 
-		if (typeof v === 'object' && v !== null) {
-			for (let k in v) {
-				transform(v, k, v[k]);
-			}
-		}
+        if (typeof v === 'object' && v !== null) {
+            for (let k in v) {
+                transform(v, k, v[k]);
+            }
+        }
 
-		return v;
-	})({ '': obj }, '', obj);
+        return v;
+    })({ '': obj }, '', obj);
 }
 
 addEventListener('fetch', event => {
-	if (event.request.method !== 'GET') return;
+    // if (event.request.method !== 'GET') return;
 
-	let url = new URL(event.request.url);
-	if (!url.pathname.endsWith('.js')) return;
+    // let url = new URL(event.request.url);
+    // if (!url.pathname.endsWith('.js')) return;
 
-	let accept = event.request.headers.get('Accept') || '';
-	if (!accept.startsWith('application/javascript-binast')) return;
+    // let accept = event.request.headers.get('Accept') || '';
+    // if (!accept.startsWith('application/javascript-binast')) return;
 
-	event.passThroughOnException();
-	event.respondWith(handleBinJS(event));
+    event.passThroughOnException();
+    event.respondWith(handleBinJS(event));
 });
 
 async function handleBinJS(event) {
-	const req = event.request;
+    try {
+        const req = event.request;
 
-	function log(...args) {
-		args.unshift(req.url);
+        // return new Response("before");
+        const {encodeMultipart} = await import("./pkg");
+        return new Response("after");
 
-		console.log(...args);
+        function log(...args) {
+            args.unshift(req.url);
 
-		// event.waitUntil(
-		//   fetch('...', {
-		//     method: 'POST',
-		//     body: args.join(' ')
-		//   })
-		// );
-	}
+            console.log(...args);
 
-	try {
-		const cache = await caches.open(VERSION);
+            // event.waitUntil(
+            //   fetch('...', {
+            //     method: 'POST',
+            //     body: args.join(' ')
+            //   })
+            // );
+        }
 
-		{
-			let cacheRes = await cache.match(req);
-			log('cache match', !!cacheRes);
-			if (cacheRes) return cacheRes;
-		}
+        // const cache = await caches.open(VERSION);
 
-		let origRes;
-		{
-			let origReq = new Request(req);
-			origReq.headers.set('Accept', '*/*');
-			origRes = await fetch(origReq);
-			log('original response', origRes && origRes.statusText);
-			if (!origRes.ok) return origRes;
-		}
+        // {
+        // 	let cacheRes = await cache.match(req);
+        // 	log('cache match', !!cacheRes);
+        // 	if (cacheRes) return cacheRes;
+        // }
 
-		event.waitUntil(
-			(async function transformAndCache() {
-				try {
-					let js = await origRes.clone().text();
-					log('original response text', js.length);
+        const origRes = await fetch("https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js");
 
-					const shiftAST = parseScript(js, { earlyErrors: false });
-					log('parsed');
+        let js = await origRes.clone().text();
+        log('original response text', js.length);
 
-					const bAST = transformLikeToJSON(shiftAST, fromShift);
-					log('transformed');
+        const shiftAST = parseScript(js, { earlyErrors: false });
+        log('parsed');
 
-					await initialisedWASM;
-					let encoded = encodeMultipart(bAST);
-					log('encoded', encoded.length);
+        const bAST = transformLikeToJSON(shiftAST, fromShift);
+        log('transformed');
 
-					const bastRes = new Response(encoded, origRes);
-					bastRes.headers.delete('Content-Encoding');
-					bastRes.headers.set('Content-Type', 'application/javascript-binast');
-					bastRes.headers.append('Vary', 'Accept');
-					log('created response');
+        let encoded = encodeMultipart(bAST);
+        log('encoded', encoded.length);
 
-					await cache.put(req, bastRes);
-					log('cached');
-				} catch (e) {
-					log('error', e.stack);
-				}
-			})()
-		);
+        const bastRes = new Response(encoded, origRes);
+        bastRes.headers.delete('Content-Encoding');
+        bastRes.headers.set('Content-Type', 'application/javascript-binast');
+        bastRes.headers.append('Vary', 'Accept');
+        log('created response');
 
-		return origRes;
-	} catch (e) {
-		log('error', e.stack);
-		throw e;
-	}
+        // await cache.put(req, bastRes);
+        log('cached');
+        return bastRes;
+    } catch (e) {
+        log('error', e.stack);
+        return new Response(e.stack || e);
+        throw e;
+    }
 }

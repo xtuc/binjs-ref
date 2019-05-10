@@ -12,5 +12,8 @@
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "^0.2.7",
     "webpack": "^4.29.6"
+  },
+  "dependencies": {
+    "wrangler-js": "^0.1.1"
   }
 }
