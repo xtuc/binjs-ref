@@ -19,16 +19,27 @@ input.addEventListener('change', async () => {
 		reader.readAsText(file);
 	});
 
+    console.time("worker");
+
+    console.time("transformation");
 	let shiftAST = parseScript(js, { earlyErrors: false });
 	let bAST = JSON.parse(JSON.stringify(shiftAST, fromShift));
+    console.timeEnd("transformation");
 
 	if (output.src) {
 		URL.revokeObjectURL(output.src);
 		output.src = '';
 	}
 
+    console.time("wasm init");
 	await WASM;
+    console.timeEnd("wasm init");
+
+    console.time("encoding");
 	let encoded = encodeMultipart(bAST);
 
-	output.src = URL.createObjectURL(new Blob([encoded], { type: 'application/javascript-binast' }));
+	// output.src = URL.createObjectURL(new Blob([encoded], { type: 'application/javascript-binast' }));
+
+    console.timeEnd("encoding");
+    console.timeEnd("worker");
 });

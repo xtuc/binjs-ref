@@ -11,9 +11,11 @@
   "license": "MIT",
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "^0.2.7",
-    "webpack": "^4.29.6"
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.2"
   },
   "dependencies": {
+    "webpack-dev-server": "^3.3.1",
     "wrangler-js": "^0.1.1"
   }
 }
