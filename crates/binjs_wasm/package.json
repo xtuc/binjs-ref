@@ -10,10 +10,8 @@
   "author": "Ingvar Stepanyan <me@rreverser.com> (https://rreverser.com/)",
   "license": "MIT",
   "devDependencies": {
-    "@wasm-tool/wasm-pack-plugin": "^0.2.7",
-    "webpack": "^4.29.6"
-  },
-  "dependencies": {
-    "wrangler-js": "^0.1.1"
+    "@wasm-tool/wasm-pack-plugin": "^0.4.1",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.2"
   }
 }
